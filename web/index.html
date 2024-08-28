@@ -91,7 +91,7 @@
 <script>
   (() => {
     const $ = s => document.querySelector(s);
-    ['login-submit', 'generate-submit'].forEach(id => $(`#${id} button`).setAttribute("disabled", "disabled"))
+    $('#login-submit button').setAttribute("disabled", "disabled")
     window.captchaToken = null
 
     const userId = Cookies.get('userId')
