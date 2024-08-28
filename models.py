@@ -25,7 +25,7 @@ class UserLoginResponse(BaseResponse):
     data: Opt[UserLoginData] = None
 
 
-class GenerateRequest(CaptchaRequiredRequest):
+class GenerateRequest(BaseModel):
     user_id: str
     filter: Opt[str] = None
 
