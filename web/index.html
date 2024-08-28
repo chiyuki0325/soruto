@@ -70,7 +70,7 @@
 </div>
 
 <div id="captcha">
-    <div class="cf-turnstile" data-sitekey="0x4AAAAAAAiQbiUbAT5Ejz4i" data-callback="setCaptchaToken"></div>
+    <div class="cf-turnstile" data-sitekey="0x4AAAAAAAiQ_iQ0E47yncIV" data-callback="setCaptchaToken"></div>
 </div>
 
 <div id="login-submit">
@@ -81,7 +81,7 @@
 
 <div id="generate-submit">
     <p>
-        <button class="btn btn-primary" disabled onclick="generate()">生成 Best 50</button>
+        <button class="btn btn-primary" onclick="generate()">生成 Best 50</button>
     </p>
 </div>
 
@@ -98,6 +98,7 @@
 
     if (userId) {
       ["#generate", "#generate-submit"].forEach(s => $(s).style.display = 'block')
+      $('.cf-turnstile').remove()
       $('#welcome').innerText = `欢迎回来，${Cookies.get('userName')}！`
     } else {
       ["#login", "#login-submit"].forEach(s => $(s).style.display = 'block')
@@ -108,7 +109,7 @@
   function setCaptchaToken(token) {
     const $ = s => document.querySelector(s)
     window.captchaToken = token;
-    ['login-submit', 'generate-submit'].forEach(id => $(`#${id} button`).removeAttribute('disabled'))
+    $('#login-submit button').removeAttribute('disabled')
   }
 
   function login() {
@@ -167,7 +168,6 @@
     generateButton.innerText = '生成中... 请稍等'
 
     const data = {
-      captcha_token: window.captchaToken,
       user_id: Cookies.get('userId')
     }
 
@@ -191,7 +191,6 @@
           b50Image.src = data.data
           b50Image.style.display = 'block'
 
-          $('.cf-turnstile').style.display = 'none'
           $('#generate-submit').style.display = 'none'
         } else {
           alert(data.message)

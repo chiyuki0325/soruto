@@ -78,9 +78,6 @@ async def user_login_api(req: UserLoginRequest) -> UserLoginResponse:
 
 @router.post("/generate")
 async def generate_best50_api(req: GenerateRequest) -> GenerateResponse:
-    if not await turnstile_verify(req.captcha_token):
-        return GenerateResponse(code=1, message="验证码验证失败")
-
     user_id = int(decrypt_aes(base64.b64decode(req.user_id)).decode())
 
     combo_condition, sync_condition = None, None
