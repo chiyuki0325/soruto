@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic
+
+aiohttp
+pycryptodome
+pytz
+
+Pillow<10

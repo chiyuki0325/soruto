@@ -1,0 +1,8 @@
+.idea/
+assets/
+data/*.json
+washing_machine/api.py
+washing_machine/encryption.py
+washing_machine/helpers.py
+allnet/
+.env
