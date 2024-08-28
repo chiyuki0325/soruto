@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <title>Best 50 生成器</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/Cookies.js/1.2.1/cookies.min.js"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+
+    <link href="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/bootstrap/5.1.3/css/bootstrap.min.css"
+          rel="stylesheet"/>
+</head>
+
+<body>
+<h1>Best 50 生成器</h1>
+<div>
+    <span id="welcome">要开始了哟！</span>
+</div>
+<div id="login">
+    <p>
+        - 在游戏公众号中生成一个登录二维码<br>
+        - 长按二维码，选择「识别图中的二维码」<br>
+        - 将得到的 SGWC 开头的字符串粘贴到下方输入框中，并点击「登录」<br>
+    </p>
+    <p>
+    <div class="input-group flex-nowrap">
+        <span class="input-group-text"">网站密码</span>
+        <input id="password" type="text" class="form-control" placeholder="输入网站密码" aria-label="网站密码"
+               aria-describedby="site-password">
+    </div>
+    </p>
+    <p>
+    <div class="input-group flex-nowrap">
+        <span class="input-group-text">二维码内容</span>
+        <input id="chime-id" type="text" class="form-control" placeholder="请在此粘贴二维码内容" aria-label="二维码内容"
+               aria-describedby="chime-id">
+    </div>
+    </p>
+
+    <div class="alert alert-danger" role="alert" id="chime-invalid">
+        请检查二维码内容是否正确！
+    </div>
+
+</div>
+
+<div id="generate">
+    <p>
+        - 点击「生成 Best 50」，即可生成您的 Best 50 成绩图。<br>
+        - 生成后，可以长按屏幕保存到相册，或者分享到其它聊天。<br>
+        <br>
+        可用的筛选器：<br>
+        <code>fc</code>, <code>fcp</code>, <code>ap</code>, <code>app</code> (分别对应 FULL COMBO, FULL COMBO+, ALL
+        PERFECT, ALL PERFECT+)<br>
+        <code>fs</code>, <code>fsp</code>, <code>fsd</code>, <code>fsdp</code> (分别对应 FULL SYNC, FULL SYNC+, FULL
+        SYNC DX, FULL SYNC DX+)<br>
+        只能输入一个筛选器，如果输入，将只显示大于等于该筛选器的成绩。<br>
+    </p>
+    <p>
+    <div class="input-group flex-nowrap">
+        <span class="input-group-text">筛选器</span>
+        <input id="filter" type="text" class="form-control" placeholder="只能填写一个筛选器" aria-label="筛选器（可选）"
+               aria-describedby="chime-id">
+    </div>
+    </p>
+
+    <img src="" class="b50-image" style="display: none;" id="b50-image"/>
+</div>
+
+<div id="captcha">
+    <div class="cf-turnstile" data-sitekey="0x4AAAAAAAiQbiUbAT5Ejz4i" data-callback="setCaptchaToken"></div>
+</div>
+
+<div id="login-submit">
+    <p>
+        <button class="btn btn-primary" disabled onclick="login()">登录</button>
+    </p>
+</div>
+
+<div id="generate-submit">
+    <p>
+        <button class="btn btn-primary" disabled onclick="generate()">生成 Best 50</button>
+    </p>
+</div>
+
+
+</body>
+
+<script>
+  (() => {
+    const $ = s => document.querySelector(s);
+    ['login-submit', 'generate-submit'].forEach(id => $(`#${id} button`).setAttribute("disabled", "disabled"))
+    window.captchaToken = null
+
+    const userId = Cookies.get('userId')
+
+    if (userId) {
+      ["#generate", "#generate-submit"].forEach(s => $(s).style.display = 'block')
+      $('#welcome').innerText = `欢迎回来，${Cookies.get('userName')}！`
+    } else {
+      ["#login", "#login-submit"].forEach(s => $(s).style.display = 'block')
+      $('#welcome').innerText = '您还未登录，请先登录账号。'
+    }
+  })()
+
+  function setCaptchaToken(token) {
+    const $ = s => document.querySelector(s)
+    window.captchaToken = token;
+    ['login-submit', 'generate-submit'].forEach(id => $(`#${id} button`).removeAttribute('disabled'))
+  }
+
+  function login() {
+    const $ = s => document.querySelector(s)
+    const chimeId = $('#chime-id').value
+    const sitePassword = $('#password').value
+    const chimeInvalidAlert = $('#chime-invalid')
+
+    if (!chimeId || chimeId.length !== 84 || !chimeId.startsWith('SGWCMAID')) {
+      chimeInvalidAlert.style.display = 'block'
+      return
+    }
+
+    if (!sitePassword) {
+      alert('请输入网站密码')
+      return
+    }
+
+    chimeInvalidAlert.style.display = 'none'
+    $('#login-submit button').setAttribute('disabled', 'disabled')
+
+    fetch('/api/user_login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chime_id: chimeId,
+        site_password: sitePassword,
+        captcha_token: window.captchaToken,
+      }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        $('#login-submit button').removeAttribute('disabled')
+        if (data.code === 0) {
+          Cookies.set('userId', data.data.user_id)
+          Cookies.set('userName', data.data.user_name)
+          location.reload()
+        } else {
+          alert(data.message)
+        }
+      })
+  }
+
+  function generate() {
+    const $ = s => document.querySelector(s)
+    const filter = $('#filter').value.trim().toLowerCase()
+    if (filter && !['fc', 'fcp', 'ap', 'app', 'fs', 'fsp', 'fsd', 'fsdp'].includes(filter)) {
+      alert('筛选器输入错误！')
+      return
+    }
+
+    const generateButton = $('#generate-submit button')
+    generateButton.setAttribute('disabled', 'disabled')
+    generateButton.innerText = '生成中... 请稍等'
+
+    const data = {
+      captcha_token: window.captchaToken,
+      user_id: Cookies.get('userId')
+    }
+
+    if (filter) {
+      data.filter = filter
+    }
+
+    fetch('/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+      .then(res => res.json())
+      .then(data => {
+        generateButton.removeAttribute('disabled')
+        generateButton.innerText = '生成 Best 50'
+        if (data.code === 0) {
+          const b50Image = $('#b50-image')
+          b50Image.src = data.data
+          b50Image.style.display = 'block'
+
+          $('.cf-turnstile').style.display = 'none'
+          $('#generate-submit').style.display = 'none'
+        } else {
+          alert(data.message)
+        }
+      })
+  }
+</script>
+
+<style>
+    body {
+        margin: 20px;
+    }
+    .b50-image {
+        width: min(100%, 1406px);
+    }
+
+    #login, #login-submit, #generate, #generate-submit {
+        display: none;
+    }
+
+    #chime-invalid {
+        display: none;
+    }
+</style>
+</html>
